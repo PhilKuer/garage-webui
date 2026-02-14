@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { copyToClipboard, handleError } from "@/lib/utils";
 import { useCallback, useMemo, useState } from "react";
 import api from "@/lib/api";
+import { Link } from "react-router-dom";
 
 const KeysPage = () => {
   const { data, refetch } = useKeys();
@@ -80,7 +81,14 @@ const KeysPage = () => {
               {items?.map((key, idx) => (
                 <Table.Row key={key.id}>
                   <span>{idx + 1}</span>
-                  <span>{key.name}</span>
+                  <span>
+                    <Link
+                      to={`/keys/${key.id}`}
+                      className="link link-hover link-primary"
+                    >
+                      {key.name || "Unnamed key"}
+                    </Link>
+                  </span>
                   <div className="flex flex-row items-center">
                     <p className="truncate max-w-20" title={key.id}>
                       {key.id}
