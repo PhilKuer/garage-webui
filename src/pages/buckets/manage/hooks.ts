@@ -102,6 +102,38 @@ export const useDenyKey = (
   });
 };
 
+export type LifecycleRule = {
+  id: string;
+  enabled: boolean;
+  prefix: string;
+  expirationDays?: number | null;
+  expirationDate?: string | null;
+  abortIncompleteMultipartDays?: number | null;
+};
+
+export type LifecycleConfig = {
+  rules: LifecycleRule[];
+};
+
+export const useLifecycle = (bucketName?: string) => {
+  return useQuery({
+    queryKey: ["lifecycle", bucketName],
+    queryFn: () => api.get<LifecycleConfig>(`/lifecycle/${bucketName}`),
+    enabled: !!bucketName,
+  });
+};
+
+export const useUpdateLifecycle = (
+  bucketName?: string,
+  options?: MutationOptions<any, Error, LifecycleConfig>
+) => {
+  return useMutation({
+    mutationFn: (config: LifecycleConfig) =>
+      api.put(`/lifecycle/${bucketName}`, { body: config }),
+    ...options,
+  });
+};
+
 export const useRemoveBucket = (
   options?: MutationOptions<any, Error, string>
 ) => {
