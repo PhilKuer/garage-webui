@@ -8,12 +8,20 @@ import (
 func HandleApiRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	auth := &Auth{}
-	mux.HandleFunc("POST /auth/login", auth.Login)
+	auth := NewAuth()
 
+	// Public auth routes (no middleware)
+	mux.HandleFunc("POST /auth/login", auth.Login)
+	mux.HandleFunc("GET /auth/status", auth.GetStatus)
+
+	if auth.OIDC != nil {
+		mux.HandleFunc("GET /auth/oidc/login", auth.OIDC.RedirectToLogin)
+		mux.HandleFunc("GET /auth/oidc/callback", auth.OIDC.HandleCallback)
+	}
+
+	// Protected routes
 	router := http.NewServeMux()
 	router.HandleFunc("POST /auth/logout", auth.Logout)
-	router.HandleFunc("GET /auth/status", auth.GetStatus)
 
 	config := &Config{}
 	router.HandleFunc("GET /config", config.GetAll)
@@ -34,6 +42,6 @@ func HandleApiRouter() *http.ServeMux {
 	// Proxy request to garage api endpoint
 	router.HandleFunc("/", ProxyHandler)
 
-	mux.Handle("/", middleware.AuthMiddleware(router))
+	mux.Handle("/", middleware.AuthMiddleware(auth.IsEnabled(), router))
 	return mux
 }

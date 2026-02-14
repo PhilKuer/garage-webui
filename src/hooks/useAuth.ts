@@ -1,9 +1,17 @@
 import api from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 
+type AuthProviders = {
+  passwordEnabled: boolean;
+  oidcEnabled: boolean;
+  oidcProviderName?: string;
+  ldapEnabled: boolean;
+};
+
 type AuthResponse = {
   enabled: boolean;
   authenticated: boolean;
+  providers: AuthProviders;
 };
 
 export const useAuth = () => {
@@ -16,5 +24,6 @@ export const useAuth = () => {
     isLoading,
     isEnabled: data?.enabled,
     isAuthenticated: data?.authenticated,
+    providers: data?.providers,
   };
 };
