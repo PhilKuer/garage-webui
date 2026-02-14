@@ -20,6 +20,7 @@ func HandleApiRouter() *http.ServeMux {
 
 	buckets := &Buckets{}
 	router.HandleFunc("GET /buckets", buckets.GetAll)
+	router.HandleFunc("POST /buckets/force-delete", buckets.ForceDelete)
 
 	browse := &Browse{}
 	router.HandleFunc("GET /browse/{bucket}", browse.GetObjects)
