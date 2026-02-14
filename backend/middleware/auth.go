@@ -6,17 +6,14 @@ import (
 	"net/http"
 )
 
-func AuthMiddleware(next http.Handler) http.Handler {
-	authData := utils.GetEnv("AUTH_USER_PASS", "")
-
+func AuthMiddleware(authEnabled bool, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := utils.Session.Get(r, "authenticated")
-
-		if authData == "" {
+		if !authEnabled {
 			next.ServeHTTP(w, r)
 			return
 		}
 
+		auth := utils.Session.Get(r, "authenticated")
 		if auth == nil || !auth.(bool) {
 			utils.ResponseErrorStatus(w, errors.New("unauthorized"), http.StatusUnauthorized)
 			return
