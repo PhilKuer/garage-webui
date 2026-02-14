@@ -110,3 +110,12 @@ export const useRemoveBucket = (
     ...options,
   });
 };
+
+export const useForceDeleteBucket = (
+  options?: MutationOptions<any, Error, string>
+) => {
+  return useMutation({
+    mutationFn: (id) => api.post("/buckets/force-delete", { params: { id } }),
+    ...options,
+  });
+};
