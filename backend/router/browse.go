@@ -228,45 +228,13 @@ func (b *Browse) DeleteObject(w http.ResponseWriter, r *http.Request) {
 
 	// Delete directory and its content
 	if isDirectory && recursive {
-		objects, err := client.ListObjectsV2(context.Background(), &s3.ListObjectsV2Input{
-			Bucket: aws.String(bucket),
-			Prefix: aws.String(key),
-		})
-
+		deleted, err := deleteAllObjects(client, bucket, key)
 		if err != nil {
-			utils.ResponseError(w, err)
+			utils.ResponseError(w, fmt.Errorf("cannot delete objects: %w", err))
 			return
 		}
 
-		if len(objects.Contents) == 0 {
-			utils.ResponseSuccess(w, true)
-			return
-		}
-
-		keys := make([]types.ObjectIdentifier, 0, len(objects.Contents))
-
-		for _, object := range objects.Contents {
-			keys = append(keys, types.ObjectIdentifier{
-				Key: object.Key,
-			})
-		}
-
-		res, err := client.DeleteObjects(context.Background(), &s3.DeleteObjectsInput{
-			Bucket: aws.String(bucket),
-			Delete: &types.Delete{Objects: keys},
-		})
-
-		if err != nil {
-			utils.ResponseError(w, fmt.Errorf("cannot delete object: %w", err))
-			return
-		}
-
-		if len(res.Errors) > 0 {
-			utils.ResponseError(w, fmt.Errorf("cannot delete object: %v", res.Errors[0]))
-			return
-		}
-
-		utils.ResponseSuccess(w, res)
+		utils.ResponseSuccess(w, map[string]int64{"deletedObjects": deleted})
 		return
 	}
 
@@ -282,6 +250,59 @@ func (b *Browse) DeleteObject(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.ResponseSuccess(w, res)
+}
+
+// deleteAllObjects deletes all objects in a bucket matching the given prefix,
+// handling pagination for buckets with more than 1000 objects.
+func deleteAllObjects(client *s3.Client, bucket string, prefix string) (int64, error) {
+	var totalDeleted int64
+	var continuationToken *string
+
+	for {
+		input := &s3.ListObjectsV2Input{
+			Bucket:  aws.String(bucket),
+			Prefix:  aws.String(prefix),
+			MaxKeys: aws.Int32(1000),
+		}
+		if continuationToken != nil {
+			input.ContinuationToken = continuationToken
+		}
+
+		objects, err := client.ListObjectsV2(context.Background(), input)
+		if err != nil {
+			return totalDeleted, err
+		}
+
+		if len(objects.Contents) == 0 {
+			break
+		}
+
+		keys := make([]types.ObjectIdentifier, 0, len(objects.Contents))
+		for _, object := range objects.Contents {
+			keys = append(keys, types.ObjectIdentifier{Key: object.Key})
+		}
+
+		res, err := client.DeleteObjects(context.Background(), &s3.DeleteObjectsInput{
+			Bucket: aws.String(bucket),
+			Delete: &types.Delete{Objects: keys},
+		})
+		if err != nil {
+			return totalDeleted, err
+		}
+
+		if len(res.Errors) > 0 {
+			return totalDeleted, fmt.Errorf("%s: %s", *res.Errors[0].Key, *res.Errors[0].Message)
+		}
+
+		totalDeleted += int64(len(keys))
+
+		if objects.IsTruncated == nil || !*objects.IsTruncated {
+			break
+		}
+		continuationToken = objects.NextContinuationToken
+	}
+
+	return totalDeleted, nil
 }
 
 func getBucketCredentials(bucket string) (aws.CredentialsProvider, error) {

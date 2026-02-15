@@ -1,6 +1,7 @@
 import Button from "@/components/ui/button";
 import Page from "@/context/page-context";
 import { Copy, Eye, Trash } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, Input, Table } from "react-daisyui";
 import { useKeys, useRemoveKey } from "./hooks";
 import CreateKeyDialog from "./components/create-key-dialog";
@@ -80,7 +81,14 @@ const KeysPage = () => {
               {items?.map((key, idx) => (
                 <Table.Row key={key.id}>
                   <span>{idx + 1}</span>
-                  <span>{key.name}</span>
+                  <span>
+                    <Link
+                      to={`/keys/${key.id}`}
+                      className="link link-primary"
+                    >
+                      {key.name}
+                    </Link>
+                  </span>
                   <div className="flex flex-row items-center">
                     <p className="truncate max-w-20" title={key.id}>
                       {key.id}
