@@ -1,4 +1,4 @@
-import { Alert, Loading, Table } from "react-daisyui";
+import { Alert, Checkbox, Loading, Table } from "react-daisyui";
 import { useBrowseObjects } from "./hooks";
 import { dayjs, readableBytes } from "@/lib/utils";
 import mime from "mime/lite";
@@ -18,9 +18,16 @@ import GotoTopButton from "@/components/ui/goto-top-btn";
 type Props = {
   prefix?: string;
   onPrefixChange?: (prefix: string) => void;
+  selectedKeys?: Set<string>;
+  onSelectionChange?: (keys: Set<string>) => void;
 };
 
-const ObjectList = ({ prefix, onPrefixChange }: Props) => {
+const ObjectList = ({
+  prefix,
+  onPrefixChange,
+  selectedKeys,
+  onSelectionChange,
+}: Props) => {
   const { bucketName } = useBucketContext();
   const { data, error, isLoading } = useBrowseObjects(bucketName, {
     prefix,
@@ -31,10 +38,58 @@ const ObjectList = ({ prefix, onPrefixChange }: Props) => {
     window.open(API_URL + object.url + "?view=1", "_blank");
   };
 
+  const allItems = [
+    ...(data?.prefixes?.map((p) => p) || []),
+    ...(data?.objects?.map((o) => (data.prefix || "") + o.objectKey) || []),
+  ];
+
+  const allSelected =
+    allItems.length > 0 &&
+    selectedKeys != null &&
+    allItems.every((key) => selectedKeys.has(key));
+
+  const someSelected =
+    !allSelected &&
+    selectedKeys != null &&
+    allItems.some((key) => selectedKeys.has(key));
+
+  const toggleSelectAll = () => {
+    if (!onSelectionChange) return;
+    if (allSelected) {
+      onSelectionChange(new Set());
+    } else {
+      onSelectionChange(new Set(allItems));
+    }
+  };
+
+  const toggleSelect = (key: string) => {
+    if (!onSelectionChange || !selectedKeys) return;
+    const next = new Set(selectedKeys);
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    onSelectionChange(next);
+  };
+
+  const selectable = !!onSelectionChange;
+
   return (
     <div className="overflow-x-auto min-h-[400px]">
       <Table>
         <Table.Head>
+          {selectable && (
+            <span className="w-8">
+              <Checkbox
+                size="sm"
+                checked={allSelected}
+                indeterminate={someSelected}
+                onChange={toggleSelectAll}
+                disabled={allItems.length === 0}
+              />
+            </span>
+          )}
           <span>Name</span>
           <span>Size</span>
           <span>Last Modified</span>
@@ -43,7 +98,7 @@ const ObjectList = ({ prefix, onPrefixChange }: Props) => {
         <Table.Body>
           {isLoading ? (
             <tr>
-              <td colSpan={3}>
+              <td colSpan={selectable ? 4 : 3}>
                 <div className="h-[320px] flex items-center justify-center">
                   <Loading />
                 </div>
@@ -51,7 +106,7 @@ const ObjectList = ({ prefix, onPrefixChange }: Props) => {
             </tr>
           ) : error ? (
             <tr>
-              <td colSpan={3}>
+              <td colSpan={selectable ? 4 : 3}>
                 <Alert status="error" icon={<CircleXIcon />}>
                   <span>{error.message}</span>
                 </Alert>
@@ -59,36 +114,50 @@ const ObjectList = ({ prefix, onPrefixChange }: Props) => {
             </tr>
           ) : !data?.prefixes?.length && !data?.objects?.length ? (
             <tr>
-              <td className="text-center py-16" colSpan={3}>
+              <td className="text-center py-16" colSpan={selectable ? 4 : 3}>
                 No objects
               </td>
             </tr>
           ) : null}
 
-          {data?.prefixes.map((prefix) => (
-            <tr
-              key={prefix}
-              className="hover:bg-neutral/60 hover:text-neutral-content group"
-            >
-              <td
-                className="cursor-pointer"
-                role="button"
-                onClick={() => onPrefixChange?.(prefix)}
+          {data?.prefixes.map((prefixItem) => {
+            const isChecked = selectedKeys?.has(prefixItem) ?? false;
+            return (
+              <tr
+                key={prefixItem}
+                className="hover:bg-neutral/60 hover:text-neutral-content group"
               >
-                <span className="flex items-center gap-2 font-normal">
-                  <Folder size={20} className="text-primary" />
-                  {prefix
-                    .substring(0, prefix.lastIndexOf("/"))
-                    .split("/")
-                    .pop()}
-                </span>
-              </td>
-              <td colSpan={2} />
-              <ObjectActions object={{ objectKey: prefix, url: "" }} />
-            </tr>
-          ))}
+                {selectable && (
+                  <td className="w-8">
+                    <Checkbox
+                      size="sm"
+                      checked={isChecked}
+                      onChange={() => toggleSelect(prefixItem)}
+                    />
+                  </td>
+                )}
+                <td
+                  className="cursor-pointer"
+                  role="button"
+                  onClick={() => onPrefixChange?.(prefixItem)}
+                >
+                  <span className="flex items-center gap-2 font-normal">
+                    <Folder size={20} className="text-primary" />
+                    {prefixItem
+                      .substring(0, prefixItem.lastIndexOf("/"))
+                      .split("/")
+                      .pop()}
+                  </span>
+                </td>
+                <td colSpan={2} />
+                <ObjectActions object={{ objectKey: prefixItem, url: "" }} />
+              </tr>
+            );
+          })}
 
           {data?.objects.map((object, idx) => {
+            const fullKey = (data.prefix || "") + object.objectKey;
+            const isChecked = selectedKeys?.has(fullKey) ?? false;
             const extIdx = object.objectKey.lastIndexOf(".");
             const filename =
               extIdx >= 0
@@ -101,6 +170,15 @@ const ObjectList = ({ prefix, onPrefixChange }: Props) => {
                 key={object.objectKey}
                 className="hover:bg-neutral/60 hover:text-neutral-content group"
               >
+                {selectable && (
+                  <td className="w-8">
+                    <Checkbox
+                      size="sm"
+                      checked={isChecked}
+                      onChange={() => toggleSelect(fullKey)}
+                    />
+                  </td>
+                )}
                 <td
                   className="cursor-pointer"
                   role="button"
