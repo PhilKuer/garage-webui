@@ -4,6 +4,7 @@ import { readableBytes } from "@/lib/utils";
 import WebsiteAccessSection from "./overview-website-access";
 import AliasesSection from "./overview-aliases";
 import QuotaSection from "./overview-quota";
+import LifecycleSection from "./overview-lifecycle";
 import { useBucketContext } from "../context";
 
 const OverviewTab = () => {
@@ -17,6 +18,7 @@ const OverviewTab = () => {
         <AliasesSection />
         <WebsiteAccessSection />
         <QuotaSection />
+        <LifecycleSection />
       </Card>
 
       <Card className="card-body order-1 md:order-2">

@@ -2,6 +2,7 @@ import Page from "@/context/page-context";
 import { useClusterStatus, useNodeInfo } from "./hooks";
 import { Card } from "react-daisyui";
 import NodesList from "./components/nodes-list";
+import BlockErrors from "./components/block-errors";
 import { useMemo } from "react";
 
 const ClusterPage = () => {
@@ -47,6 +48,8 @@ const ClusterPage = () => {
           <NodesList nodes={nodes} />
         </Card.Body>
       </Card>
+
+      <BlockErrors />
     </div>
   );
 };
