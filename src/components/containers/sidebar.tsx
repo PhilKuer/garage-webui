@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Palette,
+  Wrench,
 } from "lucide-react";
 import { Dropdown, Menu } from "react-daisyui";
 import { Link, useLocation } from "react-router-dom";
@@ -24,6 +25,7 @@ import { useAuth } from "@/hooks/useAuth";
 const pages = [
   { icon: LayoutDashboard, title: "Dashboard", path: "/", exact: true },
   { icon: HardDrive, title: "Cluster", path: "/cluster" },
+  { icon: Wrench, title: "Repair", path: "/repair" },
   { icon: ArchiveIcon, title: "Buckets", path: "/buckets" },
   { icon: KeySquare, title: "Keys", path: "/keys" },
   { icon: KeyRound, title: "Admin Tokens", path: "/admin-tokens" },
