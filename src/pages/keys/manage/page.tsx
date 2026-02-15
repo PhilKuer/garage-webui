@@ -1,7 +1,7 @@
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { useKeyInfo, useUpdateKey } from "./hooks";
 import Page from "@/context/page-context";
-import { Alert, Card, Loading, Table, Toggle } from "react-daisyui";
+import { Alert, Badge, Card, Loading, Table, Toggle } from "react-daisyui";
 import {
   CircleXIcon,
   Copy,
@@ -191,7 +191,7 @@ const ManageKeyPage = () => {
 
           {/* Associated Buckets Card */}
           <Card className="card-body p-4">
-            <h2 className="card-title text-lg">Associated Buckets</h2>
+            <h2 className="card-title text-lg">Bucket Access</h2>
 
             {data.buckets.length === 0 ? (
               <p className="text-sm opacity-60 mt-2">
@@ -202,23 +202,45 @@ const ManageKeyPage = () => {
                 <Table zebra>
                   <Table.Head>
                     <span>Bucket</span>
-                    <span>Read</span>
-                    <span>Write</span>
-                    <span>Owner</span>
+                    <span>Permissions</span>
                   </Table.Head>
                   <Table.Body>
-                    {data.buckets.map((bucket) => (
-                      <Table.Row key={bucket.id}>
-                        <span>
-                          {bucket.globalAliases?.[0] ||
-                            bucket.localAliases?.[0] ||
-                            bucket.id}
-                        </span>
-                        <span>{bucket.permissions.read ? "Yes" : "No"}</span>
-                        <span>{bucket.permissions.write ? "Yes" : "No"}</span>
-                        <span>{bucket.permissions.owner ? "Yes" : "No"}</span>
-                      </Table.Row>
-                    ))}
+                    {data.buckets.map((bucket) => {
+                      const bucketName =
+                        bucket.globalAliases?.[0] ||
+                        bucket.localAliases?.[0] ||
+                        bucket.id;
+
+                      return (
+                        <Table.Row key={bucket.id}>
+                          <span>
+                            <Link
+                              to={`/buckets/${bucket.id}`}
+                              className="link link-primary"
+                            >
+                              {bucketName}
+                            </Link>
+                          </span>
+                          <div className="flex gap-1 flex-wrap">
+                            {bucket.permissions.read && (
+                              <Badge color="success" size="sm">
+                                read
+                              </Badge>
+                            )}
+                            {bucket.permissions.write && (
+                              <Badge color="warning" size="sm">
+                                write
+                              </Badge>
+                            )}
+                            {bucket.permissions.owner && (
+                              <Badge color="info" size="sm">
+                                owner
+                              </Badge>
+                            )}
+                          </div>
+                        </Table.Row>
+                      );
+                    })}
                   </Table.Body>
                 </Table>
               </div>

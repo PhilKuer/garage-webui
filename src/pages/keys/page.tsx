@@ -1,6 +1,7 @@
 import Button from "@/components/ui/button";
 import Page from "@/context/page-context";
 import { Copy, Eye, Trash } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Card, Input, Table } from "react-daisyui";
 import { useKeys, useRemoveKey } from "./hooks";
 import CreateKeyDialog from "./components/create-key-dialog";
@@ -8,7 +9,6 @@ import { toast } from "sonner";
 import { copyToClipboard, handleError } from "@/lib/utils";
 import { useCallback, useMemo, useState } from "react";
 import api from "@/lib/api";
-import { Link } from "react-router-dom";
 
 const KeysPage = () => {
   const { data, refetch } = useKeys();
