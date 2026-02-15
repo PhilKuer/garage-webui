@@ -12,6 +12,7 @@ const ManageBucketPage = lazy(() => import("@/pages/buckets/manage/page"));
 const KeysPage = lazy(() => import("@/pages/keys/page"));
 const ManageKeyPage = lazy(() => import("@/pages/keys/manage/page"));
 const RepairPage = lazy(() => import("@/pages/repair/page"));
+const WorkersPage = lazy(() => import("@/pages/workers/page"));
 
 const router = createBrowserRouter(
   [
@@ -54,6 +55,10 @@ const router = createBrowserRouter(
         {
           path: "repair",
           Component: RepairPage,
+        },
+        {
+          path: "workers",
+          Component: WorkersPage,
         },
       ],
     },

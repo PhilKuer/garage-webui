@@ -102,6 +102,34 @@ export const useDenyKey = (
   });
 };
 
+export const useAddLocalAlias = (
+  bucketId?: string | null,
+  options?: UseMutationOptions<any, Error, { accessKeyId: string; localAlias: string }>
+) => {
+  return useMutation({
+    mutationFn: (payload: { accessKeyId: string; localAlias: string }) => {
+      return api.post("/v2/AddBucketAlias", {
+        body: { bucketId, accessKeyId: payload.accessKeyId, localAlias: payload.localAlias },
+      });
+    },
+    ...options,
+  });
+};
+
+export const useRemoveLocalAlias = (
+  bucketId?: string | null,
+  options?: UseMutationOptions<any, Error, { accessKeyId: string; localAlias: string }>
+) => {
+  return useMutation({
+    mutationFn: (payload: { accessKeyId: string; localAlias: string }) => {
+      return api.post("/v2/RemoveBucketAlias", {
+        body: { bucketId, accessKeyId: payload.accessKeyId, localAlias: payload.localAlias },
+      });
+    },
+    ...options,
+  });
+};
+
 export type LifecycleRule = {
   id: string;
   enabled: boolean;
