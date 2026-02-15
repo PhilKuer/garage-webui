@@ -84,9 +84,9 @@ const KeysPage = () => {
                   <span>
                     <Link
                       to={`/keys/${key.id}`}
-                      className="link link-primary"
+                      className="link link-hover link-primary"
                     >
-                      {key.name}
+                      {key.name || "Unnamed key"}
                     </Link>
                   </span>
                   <div className="flex flex-row items-center">

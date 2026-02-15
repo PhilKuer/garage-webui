@@ -11,6 +11,7 @@ const BucketsPage = lazy(() => import("@/pages/buckets/page"));
 const ManageBucketPage = lazy(() => import("@/pages/buckets/manage/page"));
 const KeysPage = lazy(() => import("@/pages/keys/page"));
 const ManageKeyPage = lazy(() => import("@/pages/keys/manage/page"));
+const AdminTokensPage = lazy(() => import("@/pages/admin-tokens/page"));
 const RepairPage = lazy(() => import("@/pages/repair/page"));
 const WorkersPage = lazy(() => import("@/pages/workers/page"));
 
@@ -51,6 +52,10 @@ const router = createBrowserRouter(
             { index: true, Component: KeysPage },
             { path: ":id", Component: ManageKeyPage },
           ],
+        },
+        {
+          path: "admin-tokens",
+          Component: AdminTokensPage,
         },
         {
           path: "repair",

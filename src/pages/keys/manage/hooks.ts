@@ -1,30 +1,8 @@
 import api from "@/lib/api";
-import {
-  useMutation,
-  UseMutationOptions,
-  useQuery,
-} from "@tanstack/react-query";
+import { useMutation, UseMutationOptions, useQuery } from "@tanstack/react-query";
+import { KeyInfo } from "./types";
 
-export type KeyBucket = {
-  id: string;
-  globalAliases: string[];
-  localAliases: string[];
-  permissions: {
-    read: boolean;
-    write: boolean;
-    owner: boolean;
-  };
-};
-
-export type KeyInfo = {
-  accessKeyId: string;
-  secretAccessKey: string;
-  name: string;
-  permissions: { createBucket: boolean };
-  buckets: KeyBucket[];
-};
-
-export const useKey = (id?: string | null) => {
+export const useKeyInfo = (id?: string) => {
   return useQuery({
     queryKey: ["key", id],
     queryFn: () =>
@@ -36,14 +14,10 @@ export const useKey = (id?: string | null) => {
 };
 
 export const useUpdateKey = (
-  options?: UseMutationOptions<any, Error, { id: string; name: string }>
+  options?: UseMutationOptions<any, Error, any>
 ) => {
   return useMutation({
-    mutationFn: (payload) =>
-      api.post("/v2/UpdateKey", {
-        params: { id: payload.id },
-        body: { name: payload.name },
-      }),
+    mutationFn: (body: any) => api.post("/v2/UpdateKey", { body }),
     ...options,
   });
 };
