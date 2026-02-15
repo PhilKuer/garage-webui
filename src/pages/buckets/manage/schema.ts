@@ -6,6 +6,13 @@ export const addAliasSchema = z.object({
 
 export type AddAliasSchema = z.infer<typeof addAliasSchema>;
 
+export const addLocalAliasSchema = z.object({
+  alias: z.string().min(1, "Alias is required"),
+  accessKeyId: z.string().min(1, "Access Key ID is required"),
+});
+
+export type AddLocalAliasSchema = z.infer<typeof addLocalAliasSchema>;
+
 export const websiteConfigSchema = z.object({
   websiteAccess: z.boolean(),
   websiteConfig: z
