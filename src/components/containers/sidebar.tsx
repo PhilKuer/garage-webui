@@ -1,5 +1,6 @@
 import { cn, ucfirst } from "@/lib/utils";
 import {
+  Activity,
   ArchiveIcon,
   HardDrive,
   KeySquare,
@@ -24,6 +25,7 @@ const pages = [
   { icon: HardDrive, title: "Cluster", path: "/cluster" },
   { icon: ArchiveIcon, title: "Buckets", path: "/buckets" },
   { icon: KeySquare, title: "Keys", path: "/keys" },
+  { icon: Activity, title: "Workers", path: "/workers" },
 ];
 
 const Sidebar = () => {
