@@ -3,6 +3,7 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"khairul169/garage-webui/schema"
 	"khairul169/garage-webui/utils"
 	"net/http"
 	"strings"
@@ -10,9 +11,32 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Auth struct{}
+type Auth struct {
+	OIDC *OIDCAuth
+	LDAP *LDAPAuth
+}
+
+func NewAuth() *Auth {
+	return &Auth{
+		OIDC: NewOIDCAuth(),
+		LDAP: NewLDAPAuth(),
+	}
+}
+
+func (c *Auth) IsEnabled() bool {
+	return utils.GetEnv("AUTH_USER_PASS", "") != "" || c.OIDC != nil || c.LDAP != nil
+}
 
 func (c *Auth) Login(w http.ResponseWriter, r *http.Request) {
+	// Check if a specific provider was requested
+	provider := r.URL.Query().Get("provider")
+
+	if provider == "ldap" && c.LDAP != nil {
+		c.LDAP.Login(w, r)
+		return
+	}
+
+	// Default: password-based login
 	var body struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -24,7 +48,7 @@ func (c *Auth) Login(w http.ResponseWriter, r *http.Request) {
 
 	userPass := strings.Split(utils.GetEnv("AUTH_USER_PASS", ""), ":")
 	if len(userPass) < 2 {
-		utils.ResponseErrorStatus(w, errors.New("AUTH_USER_PASS not set"), 500)
+		utils.ResponseErrorStatus(w, errors.New("password authentication not configured"), 500)
 		return
 	}
 
@@ -34,6 +58,7 @@ func (c *Auth) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.Session.Set(r, "authenticated", true)
+	utils.Session.Set(r, "auth_provider", "password")
 	utils.ResponseSuccess(w, map[string]bool{
 		"authenticated": true,
 	})
@@ -45,20 +70,35 @@ func (c *Auth) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *Auth) GetStatus(w http.ResponseWriter, r *http.Request) {
-	isAuthenticated := true
+	isAuthenticated := false
 	authSession := utils.Session.Get(r, "authenticated")
-	enabled := false
 
-	if utils.GetEnv("AUTH_USER_PASS", "") != "" {
-		enabled = true
+	if authSession != nil {
+		if val, ok := authSession.(bool); ok && val {
+			isAuthenticated = true
+		}
 	}
 
-	if authSession != nil && authSession.(bool) {
+	providers := schema.AuthConfig{
+		PasswordEnabled: utils.GetEnv("AUTH_USER_PASS", "") != "",
+		OIDCEnabled:     c.OIDC != nil,
+		LDAPEnabled:     c.LDAP != nil,
+	}
+
+	if c.OIDC != nil {
+		providers.OIDCProviderName = c.OIDC.GetProviderName()
+	}
+
+	enabled := c.IsEnabled()
+
+	// If no auth is configured, treat as authenticated
+	if !enabled {
 		isAuthenticated = true
 	}
 
-	utils.ResponseSuccess(w, map[string]bool{
-		"enabled":       enabled,
-		"authenticated": isAuthenticated,
+	utils.ResponseSuccess(w, schema.AuthStatus{
+		Enabled:       enabled,
+		Authenticated: isAuthenticated,
+		Providers:     providers,
 	})
 }
