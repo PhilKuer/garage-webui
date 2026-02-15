@@ -2,12 +2,13 @@ import { useSearchParams } from "react-router-dom";
 import { Card } from "react-daisyui";
 
 import ObjectList from "./object-list";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import ObjectListNavigator from "./object-list-navigator";
 import Actions from "./actions";
 import { useBucketContext } from "../context";
 import ShareDialog from "./share-dialog";
-import { useDeleteObject } from "./hooks";
+import DropZone from "./drop-zone";
+import { useDeleteObject, usePutObject } from "./hooks";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { handleError } from "@/lib/utils";
@@ -35,6 +36,14 @@ const BrowseTab = () => {
 
   const queryClient = useQueryClient();
 
+  const putObject = usePutObject(bucketName, {
+    onSuccess: () => {
+      toast.success("File uploaded!");
+      queryClient.invalidateQueries({ queryKey: ["browse", bucketName] });
+    },
+    onError: handleError,
+  });
+
   const deleteObject = useDeleteObject(bucketName, {
     onError: handleError,
   });
@@ -56,6 +65,22 @@ const BrowseTab = () => {
     setPrefixHistory([...history, prefix]);
     setCurPrefix(history.length);
   };
+
+  const handleDrop = useCallback(
+    (files: File[]) => {
+      if (files.length > 20) {
+        toast.error("You can only upload up to 20 files at a time");
+        return;
+      }
+
+      const prefix = prefixHistory[curPrefix] || "";
+      for (const file of files) {
+        const key = prefix + file.name;
+        putObject.mutate({ key, file });
+      }
+    },
+    [prefixHistory, curPrefix, putObject]
+  );
 
   const handleBatchDelete = async () => {
     if (selectedKeys.size === 0) return;
@@ -109,7 +134,7 @@ const BrowseTab = () => {
   }
 
   return (
-    <div>
+    <DropZone onDrop={handleDrop}>
       <Card className="pb-2">
         <ObjectListNavigator
           curPrefix={curPrefix}
@@ -158,7 +183,7 @@ const BrowseTab = () => {
 
         <ShareDialog />
       </Card>
-    </div>
+    </DropZone>
   );
 };
 
