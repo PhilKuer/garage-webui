@@ -8,18 +8,36 @@ import (
 func HandleApiRouter() *http.ServeMux {
 	mux := http.NewServeMux()
 
-	auth := &Auth{}
-	mux.HandleFunc("POST /auth/login", auth.Login)
+	auth := NewAuth()
 
+	// Public auth routes (no middleware)
+	mux.HandleFunc("POST /auth/login", auth.Login)
+	mux.HandleFunc("GET /auth/status", auth.GetStatus)
+
+	if auth.OIDC != nil {
+		mux.HandleFunc("GET /auth/oidc/login", auth.OIDC.RedirectToLogin)
+		mux.HandleFunc("GET /auth/oidc/callback", auth.OIDC.HandleCallback)
+	}
+
+	// Protected routes
 	router := http.NewServeMux()
 	router.HandleFunc("POST /auth/logout", auth.Logout)
-	router.HandleFunc("GET /auth/status", auth.GetStatus)
 
 	config := &Config{}
 	router.HandleFunc("GET /config", config.GetAll)
 
 	buckets := &Buckets{}
 	router.HandleFunc("GET /buckets", buckets.GetAll)
+	router.HandleFunc("POST /buckets/force-delete", buckets.ForceDelete)
+
+	stats := &Stats{}
+	router.HandleFunc("GET /stats/cluster", stats.GetClusterStats)
+	router.HandleFunc("GET /stats/nodes", stats.GetNodeStats)
+
+	lifecycle := &Lifecycle{}
+	router.HandleFunc("GET /lifecycle/{bucket}", lifecycle.GetLifecycle)
+	router.HandleFunc("PUT /lifecycle/{bucket}", lifecycle.PutLifecycle)
+	router.HandleFunc("DELETE /lifecycle/{bucket}", lifecycle.DeleteLifecycle)
 
 	browse := &Browse{}
 	router.HandleFunc("GET /browse/{bucket}", browse.GetObjects)
@@ -30,6 +48,6 @@ func HandleApiRouter() *http.ServeMux {
 	// Proxy request to garage api endpoint
 	router.HandleFunc("/", ProxyHandler)
 
-	mux.Handle("/", middleware.AuthMiddleware(router))
+	mux.Handle("/", middleware.AuthMiddleware(auth.IsEnabled(), router))
 	return mux
 }
