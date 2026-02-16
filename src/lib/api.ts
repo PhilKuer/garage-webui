@@ -47,7 +47,12 @@ const api = {
     const isJson = res.headers
       .get("Content-Type")
       ?.includes("application/json");
-    const data = isJson ? await res.json() : await res.text();
+    let data;
+    try {
+      data = isJson ? await res.json() : await res.text();
+    } catch {
+      data = await res.text().catch(() => "");
+    }
 
     if (res.status === 401 && !url.startsWith("/auth")) {
       window.location.href = utils.url("/auth/login");

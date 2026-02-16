@@ -68,9 +68,9 @@ const NodesList = ({ nodes }: NodeListProps) => {
         if (filter.search) {
           const q = filter.search.toLowerCase();
           return (
-            item.hostname.toLowerCase().includes(q) ||
-            item.id.includes(q) ||
-            item.addr.includes(q) ||
+            item.hostname?.toLowerCase().includes(q) ||
+            item.id?.includes(q) ||
+            item.addr?.includes(q) ||
             item.role?.zone?.includes(q) ||
             item.role?.tags?.find((tag) => tag.toLowerCase().includes(q))
           );

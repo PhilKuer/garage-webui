@@ -122,7 +122,7 @@ const BrowseTab = () => {
     }
   };
 
-  if (!bucket.keys.find((k) => k.permissions.read && k.permissions.write)) {
+  if (!bucket?.keys?.find((k) => k.permissions.read && k.permissions.write)) {
     return (
       <div className="p-4 min-h-[200px] flex flex-col items-center justify-center">
         <p className="text-center max-w-sm">
