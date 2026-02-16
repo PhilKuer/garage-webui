@@ -48,7 +48,7 @@ const ManageBucketPage = () => {
   const { id } = useParams();
   const { data, error, isLoading, refetch } = useBucket(id);
 
-  const name = data?.globalAliases[0];
+  const name = data?.globalAliases?.[0];
 
   return (
     <>

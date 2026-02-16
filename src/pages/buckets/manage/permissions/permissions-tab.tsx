@@ -59,7 +59,7 @@ const PermissionsTab = () => {
 
             <Table.Body>
               {keys?.map((key, idx) => (
-                <Table.Row>
+                <Table.Row key={key.accessKeyId}>
                   <span>{idx + 1}</span>
                   <span>{key.name || key.accessKeyId?.substring(0, 8)}</span>
                   <span>{key.bucketLocalAliases?.join(", ") || "-"}</span>

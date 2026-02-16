@@ -40,7 +40,7 @@ const ObjectList = ({
 
   const allItems = [
     ...(data?.prefixes?.map((p) => p) || []),
-    ...(data?.objects?.map((o) => (data.prefix || "") + o.objectKey) || []),
+    ...(data?.objects?.map((o) => (data?.prefix || "") + o.objectKey) || []),
   ];
 
   const allSelected =
@@ -120,7 +120,7 @@ const ObjectList = ({
             </tr>
           ) : null}
 
-          {data?.prefixes.map((prefixItem) => {
+          {data?.prefixes?.map((prefixItem) => {
             const isChecked = selectedKeys?.has(prefixItem) ?? false;
             return (
               <tr
@@ -155,8 +155,8 @@ const ObjectList = ({
             );
           })}
 
-          {data?.objects.map((object, idx) => {
-            const fullKey = (data.prefix || "") + object.objectKey;
+          {data?.objects?.map((object, idx) => {
+            const fullKey = (data?.prefix || "") + object.objectKey;
             const isChecked = selectedKeys?.has(fullKey) ?? false;
             const extIdx = object.objectKey.lastIndexOf(".");
             const filename =
